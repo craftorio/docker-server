@@ -1,4 +1,4 @@
-# Docker Server
+# Dockerized Server
 
 Create the server work dir
 ```bash
