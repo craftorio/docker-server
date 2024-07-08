@@ -32,7 +32,7 @@ Run the server
 docker run -d \
     --name my-server \
     -e JVM_MEMORY_MAX=2048M \
-    -p 25565:25565
+    -p 25565:25565 \
     -v ${PWD}/worlds:/opt/craftorio/worlds \
     -v ${PWD}/mods:/opt/craftorio/mods \
     -v ${PWD}/logs:/opt/craftorio/logs \
