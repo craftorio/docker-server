@@ -86,19 +86,19 @@ server_stop() {
     sleep 0.5
     
     seconds=0
-    while is_running
-    do
+    while is_running; do
         sleep 1
         seconds=$(($seconds+1))
         if [ $seconds -eq 10 ]; then
             echo "Waiting for server shutdown..."
         fi
+        if [ $seconds -eq 30 ]; then
+            echo "Timeout reached, terminating..."
+            kill -9 $(head -1 $PIDFILE)
+        fi
     done
-    
-    if is_running; then
-        echo "Timeout reached, terminating..."
-        kill -9 $(head -1 $PIDFILE)
-    else
+
+    if [ $seconds -lt 30 ]; then
         echo "Server shutdown successfully..."
     fi
 }
