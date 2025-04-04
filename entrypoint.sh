@@ -129,8 +129,16 @@ server_init() {
         wait $pid 2>/dev/null || /bin/true
     fi
 
-    mv /opt/craftorio/*.yml /opt/craftorio/config-server/
-    mv /opt/craftorio/*.conf /opt/craftorio/config-server/
+    shopt -s nullglob
+    files=(/opt/craftorio/*.yml)
+    if (( ${#files[@]} )); then
+        mv "${files[@]}" /opt/craftorio/config-server/
+    fi
+    
+    files=(/opt/craftorio/*.conf)
+    if (( ${#files[@]} )); then
+        mv "${files[@]}" /opt/craftorio/config-server/
+    fi
     mv /opt/craftorio/server.properties /opt/craftorio/config-server/server.properties
     mv /opt/craftorio/banned-players.json /opt/craftorio/config-server/banned-players.json
     mv /opt/craftorio/banned-ips.json /opt/craftorio/config-server/banned-ips.json
