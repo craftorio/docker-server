@@ -47,7 +47,7 @@ Run the server
 ```bash
 docker run -d \
     --name my-server \
-    -e JVM_MEMORY_MAX=2048M \
+    -e JVM_MEMORY_MAX=4096M \
     -p 25565:25565 \
     -v ${PWD}/worlds:/opt/craftorio/worlds \
     -v ${PWD}/mods:/opt/craftorio/mods \
@@ -55,5 +55,5 @@ docker run -d \
     -v ${PWD}/plugins:/opt/craftorio/plugins \
     -v ${PWD}/config:/opt/craftorio/config \
     -v ${PWD}/config-server:/opt/craftorio/config-server \
-    craftorio/docker-server:1.19.4-arclight-1.0.8-forge-45.2.6
+    ghcr.io/craftorio/docker-server-minecraft:1.19.2-arclight-1.0.6-forge-43.4.4
 ```
