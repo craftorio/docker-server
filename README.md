@@ -70,12 +70,17 @@ docker run -d \
 # View logs
 docker logs -f minecraft-server
 
-# Access server console
+# Connect to Minecraft console (recommended)
+docker exec -it minecraft-server screen -r
+
+# Access server bash shell
 docker exec -it minecraft-server bash
 
 # Stop server
 docker stop minecraft-server
 ```
+
+> 💡 **Tip**: Use `docker exec -it minecraft-server screen -r` to connect directly to the Minecraft server console where you can run server commands like `/op`, `/whitelist`, `/say`, etc. Press `Ctrl+A` then `Ctrl+D` to detach from console without stopping the server.
 
 ## 🎨 Resource Packs & Data Packs
 
