@@ -1,13 +1,29 @@
 # Dockerized Server
 
+## Building Docker Images
+
+To build a specific version:
+```bash
+./build.sh 1.19.2-arclight-1.0.6-forge-43.4.4
+```
+
+To build all available versions:
+```bash
+./build.sh
+```
+
+Available versions can be found in the `docker/` directory.
+
+## Running the Server
+
 Create the server work dir
 ```bash
-mkdir ~/my-saerver
+mkdir ~/my-server
 ```
 
 Navigate to the dir
 ```bash
-cd ~/my-saerver
+cd ~/my-server
 ```
 
 Create required dirs

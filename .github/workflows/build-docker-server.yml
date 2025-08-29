@@ -1,0 +1,71 @@
+name: Build & Publish docker-server-minecraft multi-arch images to GHCR
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'docker/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: docker-server-minecraft
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - "1.12.2-forge-14.23.5.2860"
+          - "1.18.2-arclight-1.0.12-forge-40.2.14"
+          - "1.19.2-arclight-1.0.6-forge-43.4.4"
+          - "1.19.4-arclight-1.0.8-forge-45.2.6"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ matrix.version }}
+            type=raw,value=${{ matrix.version }}-{{sha}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./docker
+          file: ./docker/${{ matrix.version }}/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: |
+            type=gha
+            type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:cache-${{ matrix.version }}
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:cache-${{ matrix.version }},mode=max
+          add-hosts: |
+            sessionserver.mojang.com:127.0.0.1
+            authserver.mojang.com:127.0.0.1

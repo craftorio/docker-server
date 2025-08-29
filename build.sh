@@ -6,11 +6,11 @@ cd "${DIR}"
 PUSH=${PUSH:-""}
 while read tag; do
     if [ -z $1 ] || [[ $tag == $1* ]]; then 
-        if [ -e "dockerfile/${tag}/Dockerfile" ]; then
-            docker build --add-host sessionserver.mojang.com:127.0.0.1 --add-host authserver.mojang.com:127.0.0.1 -t ${REPOSITORY}:${tag} -f "dockerfile/${tag}/Dockerfile" .
+        if [ -e "docker/${tag}/Dockerfile" ]; then
+            docker build --add-host sessionserver.mojang.com:127.0.0.1 --add-host authserver.mojang.com:127.0.0.1 -t ${REPOSITORY}:${tag} -f "docker/${tag}/Dockerfile" ./docker
             if [[ -n $PUSH ]]; then
                 docker push ${REPOSITORY}:${tag}
             fi
         fi
     fi
-done < <(ls "dockerfile")
+done < <(ls "docker")
