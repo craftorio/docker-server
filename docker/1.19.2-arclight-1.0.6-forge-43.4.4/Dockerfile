@@ -64,7 +64,9 @@ RUN --mount=type=cache,target=/tmp/cache-libraries,uid=1000,gid=1000 \
     rm -f libraries .gradle && \
     cp -r /tmp/cache-libraries ./libraries 2>/dev/null || true && \
     cp -r /tmp/cache-gradle ./.gradle 2>/dev/null || true && \
-    echo "Libraries copied to permanent location"
+    echo "Libraries copied to permanent location" && \
+    find /opt/craftorio -name "*.log" -type f -delete 2>/dev/null || true && \
+    echo "Cleaned up all log files"
 
 # Rename to standard name for runtime
 RUN mv arclight-forge-${MC_VERSION}-${ARCLIGHT_VERSION}.jar arclight-server.jar && \

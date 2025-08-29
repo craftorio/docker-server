@@ -42,7 +42,9 @@ COPY --chown=craftorio:craftorio server/forge/${MC_VERSION}/forge-${MC_VERSION}-
 
 # Install forge (no caching - installer needs clean directory)
 RUN java -jar forge-installer.jar --installServer --debug \
-    && rm forge-installer.jar
+    && rm forge-installer.jar \
+    && find /opt/craftorio -name "*.log" -type f -delete 2>/dev/null || true \
+    && echo "Cleaned up all log files"
 
 RUN mkdir -p \
     /opt/craftorio/worlds \
