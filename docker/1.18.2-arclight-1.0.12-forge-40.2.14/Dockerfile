@@ -47,10 +47,7 @@ COPY --chown=craftorio:craftorio ultra-core/ultra-core-agent-server.conf.tpl ult
 COPY --chown=craftorio:craftorio server/arclight/${MC_VERSION}/arclight-forge-${MC_VERSION}-${ARCLIGHT_VERSION}.jar arclight-forge-${MC_VERSION}-${ARCLIGHT_VERSION}.jar
 
 # First run to cache libraries and patch - launcher handles GUI setup
-# Cache Minecraft libraries and dependencies
-RUN --mount=type=cache,target=/opt/craftorio/.gradle \
-    --mount=type=cache,target=/opt/craftorio/libraries \
-    echo "eula=true" > eula.txt && \
+RUN echo "eula=true" > eula.txt && \
     export JVM_MEMORY_START=1024M && export JVM_MEMORY_MAX=2048M && \
     timeout 180s ./java-jar-launcher.sh arclight-forge-${MC_VERSION}-${ARCLIGHT_VERSION}.jar 2>&1 | tee /tmp/arclight-cache.log & \
     timeout 180s bash -c "until grep -E '(Done.*For help|Server started|Finished loading)' /tmp/arclight-cache.log 2>/dev/null; do sleep 2; done" && \
