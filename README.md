@@ -1,59 +1,193 @@
-# Dockerized Server
+# 🚀 Docker Minecraft Server
 
-## Building Docker Images
+[![Build Multi-Arch Images](https://github.com/craftorio/docker-server-minecraft/actions/workflows/build-docker-server.yml/badge.svg)](https://github.com/craftorio/docker-server-minecraft/actions/workflows/build-docker-server.yml)
+[![GitHub Container Registry](https://img.shields.io/badge/ghcr.io-container%20registry-blue?logo=github)](https://github.com/craftorio/docker-server-minecraft/pkgs/container/docker-server-minecraft)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-To build a specific version:
+> 🐳 **Multi-architecture Docker images** for Minecraft servers with **Forge** and **Arclight** support
+
+---
+
+## ✨ Features
+
+- 🏗️ **Multi-platform support**: AMD64 & ARM64
+- ⚡ **Optimized performance** with built-in caching
+- 🔧 **Multiple Minecraft versions** (Forge + Arclight)
+- 🔄 **Automatic builds** via GitHub Actions
+- 📦 **Published to GitHub Container Registry**
+- 🛡️ **Production-ready** configurations
+
+## 🎮 Supported Versions
+
+| Version | Type | Java | Minecraft | Forge | Arclight |
+|---------|------|------|-----------|-------|----------|
+| `1.12.2-forge-14.23.5.2860` | Forge | 8 | 1.12.2 | 14.23.5.2860 | - |
+| `1.18.2-arclight-1.0.12-forge-40.2.14` | Arclight | 17 | 1.18.2 | 40.2.14 | 1.0.12 |
+| `1.19.2-arclight-1.0.6-forge-43.4.4` | Arclight | 17 | 1.19.2 | 43.4.4 | 1.0.6 |
+| `1.19.4-arclight-1.0.8-forge-45.2.6` | Arclight | 17 | 1.19.4 | 45.2.6 | 1.0.8 |
+
+## 🚀 Quick Start
+
+### 1. 📁 Prepare Server Directory
+
 ```bash
-./build.sh 1.19.2-arclight-1.0.6-forge-43.4.4
+# Create server directory
+mkdir ~/my-minecraft-server && cd ~/my-minecraft-server
+
+# Create required directories
+mkdir -p worlds dynmap mods logs plugins config config-server
+
+# Set permissions (Linux/macOS)
+chown -R 1000:1000 .
 ```
 
-To build all available versions:
+### 2. 🎯 Run Server
+
+```bash
+docker run -d \
+  --name minecraft-server \
+  --restart unless-stopped \
+  -e JVM_MEMORY_MAX=4096M \
+  -p 25565:25565 \
+  -v ${PWD}/worlds:/opt/craftorio/worlds \
+  -v ${PWD}/mods:/opt/craftorio/mods \
+  -v ${PWD}/logs:/opt/craftorio/logs \
+  -v ${PWD}/plugins:/opt/craftorio/plugins \
+  -v ${PWD}/config:/opt/craftorio/config \
+  -v ${PWD}/config-server:/opt/craftorio/config-server \
+  ghcr.io/craftorio/docker-server-minecraft:1.19.4-arclight-1.0.8-forge-45.2.6
+```
+
+### 3. 📊 Monitor Server
+
+```bash
+# View logs
+docker logs -f minecraft-server
+
+# Access server console
+docker exec -it minecraft-server bash
+
+# Stop server
+docker stop minecraft-server
+```
+
+## 🔧 Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `JVM_MEMORY_MAX` | `2048M` | Maximum JVM heap size |
+| `JVM_MEMORY_MIN` | `1024M` | Minimum JVM heap size |
+| `MC_AUTH_SERVER` | `auth.craftorio.com` | Authentication server |
+| `MC_AUTH_SESSION_SERVER` | `sessionserver.craftorio.com` | Session server |
+
+## 🐳 Docker Compose
+
+Create `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  minecraft:
+    image: ghcr.io/craftorio/docker-server-minecraft:1.19.4-arclight-1.0.8-forge-45.2.6
+    container_name: minecraft-server
+    restart: unless-stopped
+    ports:
+      - "25565:25565"
+    environment:
+      - JVM_MEMORY_MAX=4096M
+      - JVM_MEMORY_MIN=2048M
+    volumes:
+      - ./worlds:/opt/craftorio/worlds
+      - ./mods:/opt/craftorio/mods
+      - ./logs:/opt/craftorio/logs
+      - ./plugins:/opt/craftorio/plugins
+      - ./config:/opt/craftorio/config
+      - ./config-server:/opt/craftorio/config-server
+    stdin_open: true
+    tty: true
+```
+
+Run with:
+```bash
+docker-compose up -d
+```
+
+## 🛠️ Building Images Locally
+
+### Prerequisites
+- Docker with Buildx support
+- Multi-platform build capability
+
+### Build specific version:
+```bash
+./build.sh 1.19.4-arclight-1.0.8-forge-45.2.6
+```
+
+### Build all versions:
 ```bash
 ./build.sh
 ```
 
-Available versions can be found in the `docker/` directory.
-
-## Running the Server
-
-Create the server work dir
+### Push to registry:
 ```bash
-mkdir ~/my-server
+PUSH=1 ./build.sh
 ```
 
-Navigate to the dir
-```bash
-cd ~/my-server
+## 🔍 Troubleshooting
+
+### Server won't start
+- Check memory allocation: `docker logs minecraft-server`
+- Verify port availability: `netstat -tulpn | grep 25565`
+- Ensure proper file permissions
+
+### Performance issues
+- Increase memory: `-e JVM_MEMORY_MAX=8192M`
+- Use SSD storage for volumes
+- Monitor with: `docker stats minecraft-server`
+
+### Connection problems
+- Check firewall settings
+- Verify port mapping: `-p 25565:25565`
+- Test with: `telnet localhost 25565`
+
+## 📁 Volume Structure
+
+```
+📂 Server Directory/
+├── 🌍 worlds/          # World saves
+├── 🗺️  dynmap/          # Dynmap web files
+├── 📦 mods/            # Forge mods
+├── 📝 logs/            # Server logs
+├── 🔌 plugins/         # Bukkit/Spigot plugins
+├── ⚙️  config/          # Configuration files
+└── 🔧 config-server/   # Server-specific configs
 ```
 
-Create required dirs
-```bash
-mkdir -p \
-    worlds \
-    dynmap \
-    mods \
-    logs \
-    plugins \
-    config \
-    config-server
-```
+## 🤝 Contributing
 
-Change ownership
-```bash
-chown -R 1000:1000 . 
-```
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open Pull Request
 
-Run the server
-```bash
-docker run -d \
-    --name my-server \
-    -e JVM_MEMORY_MAX=4096M \
-    -p 25565:25565 \
-    -v ${PWD}/worlds:/opt/craftorio/worlds \
-    -v ${PWD}/mods:/opt/craftorio/mods \
-    -v ${PWD}/logs:/opt/craftorio/logs \
-    -v ${PWD}/plugins:/opt/craftorio/plugins \
-    -v ${PWD}/config:/opt/craftorio/config \
-    -v ${PWD}/config-server:/opt/craftorio/config-server \
-    ghcr.io/craftorio/docker-server-minecraft:1.19.2-arclight-1.0.6-forge-43.4.4
-```
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Links
+
+- 📦 [GitHub Container Registry](https://github.com/craftorio/docker-server-minecraft/pkgs/container/docker-server-minecraft)
+- 🔧 [Issues & Support](https://github.com/craftorio/docker-server-minecraft/issues)
+- 📚 [Documentation](https://github.com/craftorio/docker-server-minecraft/wiki)
+
+---
+
+<div align="center">
+
+**Made with ❤️ by [Craftorio](https://github.com/craftorio)**
+
+*Happy Mining! ⛏️*
+
+</div>
