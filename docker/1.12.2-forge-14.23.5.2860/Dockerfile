@@ -15,8 +15,8 @@ RUN --mount=type=cache,target=/var/cache/apk \
     xvfb && \
     fc-cache -fv
  
-RUN groupadd craftorio \
-    && useradd -d /opt/craftorio -g craftorio -s /bin/bash -m craftorio \
+RUN groupadd -g 1000 craftorio \
+    && useradd -u 1000 -d /opt/craftorio -g craftorio -s /bin/bash -m craftorio \
     && mkdir -p /opt/craftorio \
     && chown craftorio:craftorio /opt/craftorio
 

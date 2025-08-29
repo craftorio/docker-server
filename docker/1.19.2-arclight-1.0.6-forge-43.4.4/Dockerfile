@@ -20,8 +20,8 @@ RUN --mount=type=cache,target=/var/cache/apk \
 
 ENV LD_LIBRARY_PATH=/usr/lib
  
-RUN groupadd craftorio \
-    && useradd -d /opt/craftorio -g craftorio -s /bin/bash -m craftorio \
+RUN groupadd -g 1000 craftorio \
+    && useradd -u 1000 -d /opt/craftorio -g craftorio -s /bin/bash -m craftorio \
     && mkdir -p /opt/craftorio \
     && chown craftorio:craftorio /opt/craftorio
 
@@ -48,9 +48,10 @@ COPY --chown=craftorio:craftorio server/arclight/${MC_VERSION}/arclight-forge-${
 
 # First run to cache libraries and patch - launcher handles GUI setup
 # Use cache mount for libraries, then copy to permanent location
-RUN --mount=type=cache,target=/tmp/cache-libraries \
-    --mount=type=cache,target=/tmp/cache-gradle \
+RUN --mount=type=cache,target=/tmp/cache-libraries,uid=1000,gid=1000 \
+    --mount=type=cache,target=/tmp/cache-gradle,uid=1000,gid=1000 \
     mkdir -p /tmp/cache-libraries /tmp/cache-gradle && \
+    chown craftorio:craftorio /tmp/cache-libraries /tmp/cache-gradle && \
     ln -sf /tmp/cache-libraries libraries && \
     ln -sf /tmp/cache-gradle .gradle && \
     echo "eula=true" > eula.txt && \
