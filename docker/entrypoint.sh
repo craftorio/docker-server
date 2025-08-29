@@ -2,7 +2,7 @@
 set -e
 if [[ -n $DEBUG ]]; then set -x; fi
 
-INIT_TIMEOUT=${INIT_TIMEOUT:-"60s"}
+INIT_TIMEOUT=${INIT_TIMEOUT:-"120s"}
 
 # User that should run the server
 USERNAME=${MC_USER:-"craftorio"}
