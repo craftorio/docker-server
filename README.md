@@ -1,8 +1,9 @@
 # 🚀 Docker Minecraft Server
 
-[![Build Multi-Arch Images](https://github.com/scherepanov/docker-server-minecraft/actions/workflows/build-docker-server.yml/badge.svg)](https://github.com/scherepanov/docker-server-minecraft/actions/workflows/build-docker-server.yml)
-[![GitHub Container Registry](https://img.shields.io/badge/ghcr.io-container%20registry-blue?logo=github)](https://github.com/scherepanov/docker-server-minecraft/pkgs/container/docker-server-minecraft)
+[![Build Multi-Arch Images](https://github.com/craftorio/docker-server/actions/workflows/build-docker-server.yml/badge.svg)](https://github.com/craftorio/docker-server/actions/workflows/build-docker-server.yml)
+[![GitHub Container Registry](https://img.shields.io/badge/ghcr.io-container%20registry-blue?logo=github)](https://github.com/craftorio/docker-server/pkgs/container/docker-server-minecraft)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/docker-multi--arch-blue?logo=docker)](https://github.com/craftorio/docker-server)
 
 > 🐳 **Multi-architecture Docker images** for Minecraft servers with **Forge** and **Arclight** support
 
@@ -212,15 +213,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- 📦 [GitHub Container Registry](https://github.com/scherepanov/docker-server-minecraft/pkgs/container/docker-server-minecraft)
-- 🔧 [Issues & Support](https://github.com/scherepanov/docker-server-minecraft/issues)
-- 📚 [Documentation](https://github.com/scherepanov/docker-server-minecraft/wiki)
+- 📦 [GitHub Container Registry](https://github.com/craftorio/docker-server/pkgs/container/docker-server-minecraft)
+- 🔧 [Issues & Support](https://github.com/craftorio/docker-server/issues)
+- 📚 [Documentation](https://github.com/craftorio/docker-server/wiki)
 
 ---
 
 <div align="center">
 
-**Made with ❤️ by [Scherepanov](https://github.com/scherepanov)**
+**Made with ❤️ by [Craftorio](https://github.com/craftorio)**
 
 *Happy Mining! ⛏️*
 

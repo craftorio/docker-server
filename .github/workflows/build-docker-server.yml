@@ -1,4 +1,4 @@
-name: Build & Publish docker-server-minecraft multi-arch images to GHCR
+name: Build Multi-Arch Images
 
 on:
   push:
