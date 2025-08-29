@@ -15,7 +15,12 @@ RUN --mount=type=cache,target=/var/cache/apk \
     xvfb && \
     ln -sf /usr/lib/libfontconfig.so.1 /usr/lib/libfontconfig.so && \
     ln -sf /lib/libuuid.so.1 /usr/lib/libuuid.so.1 && \
-    ln -sf /lib/libc.musl-x86_64.so.1 /usr/lib/libc.musl-x86_64.so.1 && \
+    ARCH=$(uname -m); \
+    if [ "$ARCH" = "x86_64" ]; then \
+        ln -sf /lib/libc.musl-x86_64.so.1 /usr/lib/libc.musl-x86_64.so.1; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        ln -sf /lib/libc.musl-aarch64.so.1 /usr/lib/libc.musl-aarch64.so.1; \
+    fi && \
     fc-cache -fv
 
 ENV LD_LIBRARY_PATH=/usr/lib
