@@ -87,7 +87,9 @@ RUN mkdir -p \
     /opt/craftorio/config-server \
     /opt/craftorio/scripts \
     /opt/craftorio/Flan \
-    /opt/craftorio/tacz
+    /opt/craftorio/tacz \
+    /opt/craftorio/resourcepacks \
+    /opt/craftorio/datapacks
 
 FROM base
 USER craftorio
@@ -100,7 +102,7 @@ ENV MC_AUTH_SESSION_SERVER=sessionserver.craftorio.com
 COPY --from=builder --chown=craftorio:craftorio /opt/craftorio/ /opt/craftorio/
 COPY --chown=craftorio:craftorio --chmod=0700 entrypoint.sh /entrypoint.sh
 
-VOLUME ["/opt/craftorio/dynmap", "/opt/craftorio/worlds", "/opt/craftorio/plugins", "/opt/craftorio/mods", "/opt/craftorio/config", "/opt/craftorio/logs", "/opt/craftorio/config-server", "/opt/craftorio/scripts", "/opt/craftorio/Flan", "/opt/craftorio/tacz"]
+VOLUME ["/opt/craftorio/dynmap", "/opt/craftorio/worlds", "/opt/craftorio/plugins", "/opt/craftorio/mods", "/opt/craftorio/config", "/opt/craftorio/logs", "/opt/craftorio/config-server", "/opt/craftorio/scripts", "/opt/craftorio/Flan", "/opt/craftorio/tacz", "/opt/craftorio/resourcepacks", "/opt/craftorio/datapacks"]
 
 EXPOSE 25565
 

@@ -1,7 +1,7 @@
 # 🚀 Docker Minecraft Server
 
-[![Build Multi-Arch Images](https://github.com/craftorio/docker-server-minecraft/actions/workflows/build-docker-server.yml/badge.svg)](https://github.com/craftorio/docker-server-minecraft/actions/workflows/build-docker-server.yml)
-[![GitHub Container Registry](https://img.shields.io/badge/ghcr.io-container%20registry-blue?logo=github)](https://github.com/craftorio/docker-server-minecraft/pkgs/container/docker-server-minecraft)
+[![Build Multi-Arch Images](https://github.com/scherepanov/docker-server-minecraft/actions/workflows/build-docker-server.yml/badge.svg)](https://github.com/scherepanov/docker-server-minecraft/actions/workflows/build-docker-server.yml)
+[![GitHub Container Registry](https://img.shields.io/badge/ghcr.io-container%20registry-blue?logo=github)](https://github.com/scherepanov/docker-server-minecraft/pkgs/container/docker-server-minecraft)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 > 🐳 **Multi-architecture Docker images** for Minecraft servers with **Forge** and **Arclight** support
@@ -16,6 +16,7 @@
 - 🔄 **Automatic builds** via GitHub Actions
 - 📦 **Published to GitHub Container Registry**
 - 🛡️ **Production-ready** configurations
+- 🎯 **Resource packs & Data packs**: Built-in support for Minecraft resource packs, data packs, and mod-specific packs (Flan's Mod & TaCZ)
 
 ## 🎮 Supported Versions
 
@@ -35,7 +36,7 @@
 mkdir ~/my-minecraft-server && cd ~/my-minecraft-server
 
 # Create required directories
-mkdir -p worlds dynmap mods logs plugins config config-server
+mkdir -p worlds dynmap mods logs plugins config config-server Flan tacz resourcepacks datapacks
 
 # Set permissions (Linux/macOS)
 chown -R 1000:1000 .
@@ -55,6 +56,10 @@ docker run -d \
   -v ${PWD}/plugins:/opt/craftorio/plugins \
   -v ${PWD}/config:/opt/craftorio/config \
   -v ${PWD}/config-server:/opt/craftorio/config-server \
+  -v ${PWD}/Flan:/opt/craftorio/Flan \
+  -v ${PWD}/tacz:/opt/craftorio/tacz \
+  -v ${PWD}/resourcepacks:/opt/craftorio/resourcepacks \
+  -v ${PWD}/datapacks:/opt/craftorio/datapacks \
   ghcr.io/craftorio/docker-server-minecraft:1.19.4-arclight-1.0.8-forge-45.2.6
 ```
 
@@ -70,6 +75,27 @@ docker exec -it minecraft-server bash
 # Stop server
 docker stop minecraft-server
 ```
+
+## 🎨 Resource Packs & Data Packs
+
+### 📦 Resource Packs
+Place your custom resource packs in the `resourcepacks/` folder to:
+- **Change textures, sounds, and models** 
+- **Customize UI elements and fonts**
+- **Add custom music and sound effects**
+
+### 📊 Data Packs  
+Place your data packs in the `datapacks/` folder to:
+- **Add custom recipes and loot tables**
+- **Create custom dimensions and biomes** 
+- **Implement custom game mechanics**
+- **Add new structures and features**
+
+### 🔧 Mod-Specific Packs
+- **Flan/**: Resource packs for Flan's Mod vehicles and weapons
+- **tacz/**: Resource packs for TaCZ (Timeless and Classics Zero) mod
+
+> 💡 **Tip**: Resource packs are applied client-side, while data packs affect server-side gameplay. Both are automatically loaded when placed in their respective folders.
 
 ## 🔧 Environment Variables
 
@@ -104,6 +130,10 @@ services:
       - ./plugins:/opt/craftorio/plugins
       - ./config:/opt/craftorio/config
       - ./config-server:/opt/craftorio/config-server
+      - ./Flan:/opt/craftorio/Flan
+      - ./tacz:/opt/craftorio/tacz
+      - ./resourcepacks:/opt/craftorio/resourcepacks
+      - ./datapacks:/opt/craftorio/datapacks
     stdin_open: true
     tty: true
 ```
@@ -155,13 +185,17 @@ PUSH=1 ./build.sh
 
 ```
 📂 Server Directory/
-├── 🌍 worlds/          # World saves
-├── 🗺️  dynmap/          # Dynmap web files
-├── 📦 mods/            # Forge mods
-├── 📝 logs/            # Server logs
-├── 🔌 plugins/         # Bukkit/Spigot plugins
-├── ⚙️  config/          # Configuration files
-└── 🔧 config-server/   # Server-specific configs
+├── 🌍 worlds/         # World saves
+├── 🗺️ dynmap/         # Dynmap web files
+├── 📦 mods/           # Forge mods
+├── 📝 logs/           # Server logs
+├── 🔌 plugins/        # Bukkit/Spigot plugins
+├── ⚙️ config/         # Configuration files
+├── 🔧 config-server/  # Server-specific configs
+├── 🎯 Flan/           # Flan's Mod resource packs
+├── 🔫 tacz/           # TaCZ mod resource packs
+├── 🎨 resourcepacks/  # Minecraft resource packs
+└── 📊 datapacks/      # Minecraft data packs
 ```
 
 ## 🤝 Contributing
@@ -178,15 +212,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- 📦 [GitHub Container Registry](https://github.com/craftorio/docker-server-minecraft/pkgs/container/docker-server-minecraft)
-- 🔧 [Issues & Support](https://github.com/craftorio/docker-server-minecraft/issues)
-- 📚 [Documentation](https://github.com/craftorio/docker-server-minecraft/wiki)
+- 📦 [GitHub Container Registry](https://github.com/scherepanov/docker-server-minecraft/pkgs/container/docker-server-minecraft)
+- 🔧 [Issues & Support](https://github.com/scherepanov/docker-server-minecraft/issues)
+- 📚 [Documentation](https://github.com/scherepanov/docker-server-minecraft/wiki)
 
 ---
 
 <div align="center">
 
-**Made with ❤️ by [Craftorio](https://github.com/craftorio)**
+**Made with ❤️ by [Scherepanov](https://github.com/scherepanov)**
 
 *Happy Mining! ⛏️*
 
