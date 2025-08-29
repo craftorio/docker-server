@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-REPOSITORY=${REPOSITORY:-"craftorio/docker-server"}
+REPOSITORY=${REPOSITORY:-"ghcr.io/craftorio/docker-server-minecraft"}
 pushd $(dirname $0) > /dev/null;DIR=$(pwd -P);popd > /dev/null
 cd "${DIR}"
 PUSH=${PUSH:-""}
