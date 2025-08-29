@@ -159,13 +159,18 @@ server_init() {
     }
     set +x
     
+    sleep 2
+
     pid=$(ps aux | grep -v grep | grep "$INVOCATION" | awk '{ print $1 }')
     
     if [ -n $pid ]; then
         kill -15 $pid
         wait $pid 2>/dev/null || /bin/true
     fi
-
+    
+    # Clean up logs
+    find /opt/craftorio -name "*.log" -type f -delete 2>/dev/null || true
+    
     shopt -s nullglob
     files=(/opt/craftorio/*.yml)
     if (( ${#files[@]} )); then
