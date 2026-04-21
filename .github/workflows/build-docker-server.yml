@@ -5,6 +5,7 @@ on:
     branches: [ master ]
     paths:
       - 'docker/**'
+      - '.github/workflows/build-docker-server.yml'
   workflow_dispatch:
 
 permissions:
@@ -15,9 +16,14 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: docker-server-minecraft
 
+concurrency:
+  group: docker-server-${{ github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build image (${{ matrix.version }} / ${{ matrix.arch_name }})
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
@@ -27,6 +33,16 @@ jobs:
           - "1.19.2-arclight-1.0.6-forge-43.4.4"
           - "1.19.4-arclight-1.0.8-forge-45.2.6"
           - "1.20.1-arclight-1.0.6-forge-47.3.22"
+        arch_name:
+          - amd64
+          - arm64
+        include:
+          - arch_name: amd64
+            platform: linux/amd64
+            runner: ubuntu-22.04
+          - arch_name: arm64
+            platform: linux/arm64
+            runner: ubuntu-22.04-arm
 
     steps:
       - name: Checkout
@@ -52,21 +68,77 @@ jobs:
             type=raw,value=${{ matrix.version }}-{{sha}}
             type=raw,value=latest,enable={{is_default_branch}}
 
+      - name: Add architecture suffix to tags
+        id: arch-tags
+        run: |
+          {
+            echo 'tags<<EOF'
+            echo "${{ steps.meta.outputs.tags }}" | sed 's/$/-${{ matrix.arch_name }}/'
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./docker
           file: ./docker/${{ matrix.version }}/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.arch-tags.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: |
-            type=gha
-            type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:cache-${{ matrix.version }}
+            type=gha,scope=${{ matrix.version }}-${{ matrix.arch_name }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:cache-${{ matrix.version }}-${{ matrix.arch_name }}
           cache-to: |
-            type=gha,mode=max
-            type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:cache-${{ matrix.version }},mode=max
+            type=gha,mode=max,scope=${{ matrix.version }}-${{ matrix.arch_name }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:cache-${{ matrix.version }}-${{ matrix.arch_name }},mode=max
           add-hosts: |
             sessionserver.mojang.com:127.0.0.1
             authserver.mojang.com:127.0.0.1
+
+  create-manifest:
+    name: Create manifest (${{ matrix.version }})
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - "1.12.2-forge-14.23.5.2860"
+          - "1.18.2-arclight-1.0.12-forge-40.2.14"
+          - "1.19.2-arclight-1.0.6-forge-43.4.4"
+          - "1.19.4-arclight-1.0.8-forge-45.2.6"
+          - "1.20.1-arclight-1.0.6-forge-47.3.22"
+
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ matrix.version }}
+            type=raw,value=${{ matrix.version }}-{{sha}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Create and push manifest list
+        run: |
+          while IFS= read -r tag; do
+            [ -n "$tag" ] || continue
+            docker buildx imagetools create \
+              --tag "$tag" \
+              "${tag}-amd64" \
+              "${tag}-arm64"
+          done <<'EOF'
+          ${{ steps.meta.outputs.tags }}
+          EOF
