@@ -27,6 +27,7 @@
 | `1.18.2-arclight-1.0.12-forge-40.2.14` | Arclight | 17 | 1.18.2 | 40.2.14 | 1.0.12 |
 | `1.19.2-arclight-1.0.6-forge-43.4.4` | Arclight | 17 | 1.19.2 | 43.4.4 | 1.0.6 |
 | `1.19.4-arclight-1.0.8-forge-45.2.6` | Arclight | 17 | 1.19.4 | 45.2.6 | 1.0.8 |
+| `1.20.1-arclight-1.0.6-forge-47.3.22` | Arclight | 17 | 1.20.1 | 47.3.22 | 1.0.6 |
 
 ## 🚀 Quick Start
 
@@ -61,7 +62,7 @@ docker run -d \
   -v ${PWD}/tacz:/opt/craftorio/tacz \
   -v ${PWD}/resourcepacks:/opt/craftorio/resourcepacks \
   -v ${PWD}/datapacks:/opt/craftorio/datapacks \
-  ghcr.io/craftorio/docker-server-minecraft:1.19.4-arclight-1.0.8-forge-45.2.6
+  ghcr.io/craftorio/docker-server-minecraft:1.20.1-arclight-1.0.6-forge-47.3.22
 ```
 
 ### 3. 📊 Monitor Server
@@ -121,7 +122,7 @@ version: '3.8'
 
 services:
   minecraft:
-    image: ghcr.io/craftorio/docker-server-minecraft:1.19.4-arclight-1.0.8-forge-45.2.6
+    image: ghcr.io/craftorio/docker-server-minecraft:1.20.1-arclight-1.0.6-forge-47.3.22
     container_name: minecraft-server
     restart: unless-stopped
     ports:
@@ -157,7 +158,7 @@ docker-compose up -d
 
 ### Build specific version:
 ```bash
-./build.sh 1.19.4-arclight-1.0.8-forge-45.2.6
+./build.sh 1.20.1-arclight-1.0.6-forge-47.3.22
 ```
 
 ### Build all versions:
