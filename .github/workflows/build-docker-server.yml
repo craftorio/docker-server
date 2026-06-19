@@ -26,7 +26,6 @@ jobs:
       v_1_18_2_arclight: ${{ steps.filter.outputs.v_1_18_2_arclight }}
       v_1_19_2_arclight: ${{ steps.filter.outputs.v_1_19_2_arclight }}
       v_1_19_4_arclight: ${{ steps.filter.outputs.v_1_19_4_arclight }}
-      v_1_20_1_arclight_47_3_22: ${{ steps.filter.outputs.v_1_20_1_arclight_47_3_22 }}
       v_1_20_1_arclight_47_4_18: ${{ steps.filter.outputs.v_1_20_1_arclight_47_4_18 }}
       v_1_20_1_arclight_server: ${{ steps.filter.outputs.v_1_20_1_arclight_server }}
     steps:
@@ -56,8 +55,6 @@ jobs:
             v_1_19_4_arclight:
               - 'docker/1.19.4-arclight-1.0.8-forge-45.2.6/**'
               - 'docker/server/arclight/1.19.4/**'
-            v_1_20_1_arclight_47_3_22:
-              - 'docker/1.20.1-arclight-1.0.6-forge-47.3.22/**'
             v_1_20_1_arclight_47_4_18:
               - 'docker/1.20.1-arclight-1.0.6-forge-47.4.18/**'
             v_1_20_1_arclight_server:
@@ -80,7 +77,6 @@ jobs:
           V_1_18_2_ARCLIGHT: ${{ needs.changes.outputs.v_1_18_2_arclight }}
           V_1_19_2_ARCLIGHT: ${{ needs.changes.outputs.v_1_19_2_arclight }}
           V_1_19_4_ARCLIGHT: ${{ needs.changes.outputs.v_1_19_4_arclight }}
-          V_1_20_1_ARCLIGHT_47_3_22: ${{ needs.changes.outputs.v_1_20_1_arclight_47_3_22 }}
           V_1_20_1_ARCLIGHT_47_4_18: ${{ needs.changes.outputs.v_1_20_1_arclight_47_4_18 }}
           V_1_20_1_ARCLIGHT_SERVER: ${{ needs.changes.outputs.v_1_20_1_arclight_server }}
         run: |
@@ -92,7 +88,6 @@ jobs:
               "1.18.2-arclight-1.0.12-forge-40.2.14"
               "1.19.2-arclight-1.0.6-forge-43.4.4"
               "1.19.4-arclight-1.0.8-forge-45.2.6"
-              "1.20.1-arclight-1.0.6-forge-47.3.22"
               "1.20.1-arclight-1.0.6-forge-47.4.18"
             )
           else
@@ -107,9 +102,6 @@ jobs:
             fi
             if [[ "$V_1_19_4_ARCLIGHT" == "true" ]]; then
               versions+=("1.19.4-arclight-1.0.8-forge-45.2.6")
-            fi
-            if [[ "$V_1_20_1_ARCLIGHT_47_3_22" == "true" || "$V_1_20_1_ARCLIGHT_SERVER" == "true" ]]; then
-              versions+=("1.20.1-arclight-1.0.6-forge-47.3.22")
             fi
             if [[ "$V_1_20_1_ARCLIGHT_47_4_18" == "true" || "$V_1_20_1_ARCLIGHT_SERVER" == "true" ]]; then
               versions+=("1.20.1-arclight-1.0.6-forge-47.4.18")
@@ -134,7 +126,7 @@ jobs:
     if: needs.prepare.outputs.has_changes == 'true'
     runs-on: ${{ matrix.runner }}
     concurrency:
-      group: docker-server-${{ github.ref_name }}-${{ matrix.version }}
+      group: docker-server-${{ github.ref_name }}-${{ matrix.version }}-${{ matrix.arch_name }}
       cancel-in-progress: true
     strategy:
       fail-fast: false

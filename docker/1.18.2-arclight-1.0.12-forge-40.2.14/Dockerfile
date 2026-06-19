@@ -70,6 +70,7 @@ RUN --mount=type=cache,target=/tmp/cache-libraries,uid=1000,gid=1000 \
     cp -r /tmp/cache-libraries ./libraries 2>/dev/null || true && \
     cp -r /tmp/cache-gradle ./.gradle 2>/dev/null || true && \
     echo "Libraries copied to permanent location" && \
+    rm -rf world world_nether world_the_end && \
     find /opt/craftorio -name "*.log" -type f -delete 2>/dev/null || true && \
     echo "Cleaned up all log files"
 
@@ -78,7 +79,7 @@ RUN mv arclight-forge-${MC_VERSION}-${ARCLIGHT_VERSION}.jar arclight-server.jar 
     echo "Server files:" && ls -la /opt/craftorio/
 
 RUN mkdir -p \
-    /opt/craftorio/worlds \
+    /opt/craftorio/world \
     /opt/craftorio/dynmap \
     /opt/craftorio/mods \
     /opt/craftorio/logs \
@@ -102,7 +103,7 @@ ENV MC_AUTH_SESSION_SERVER=sessionserver.craftorio.com
 COPY --from=builder --chown=craftorio:craftorio /opt/craftorio/ /opt/craftorio/
 COPY --chown=craftorio:craftorio --chmod=0700 entrypoint.sh /entrypoint.sh
 
-VOLUME ["/opt/craftorio/dynmap", "/opt/craftorio/worlds", "/opt/craftorio/plugins", "/opt/craftorio/mods", "/opt/craftorio/config", "/opt/craftorio/logs", "/opt/craftorio/config-server", "/opt/craftorio/scripts", "/opt/craftorio/Flan", "/opt/craftorio/tacz", "/opt/craftorio/resourcepacks", "/opt/craftorio/datapacks"]
+VOLUME ["/opt/craftorio/dynmap", "/opt/craftorio/world", "/opt/craftorio/plugins", "/opt/craftorio/mods", "/opt/craftorio/config", "/opt/craftorio/logs", "/opt/craftorio/config-server", "/opt/craftorio/scripts", "/opt/craftorio/Flan", "/opt/craftorio/tacz", "/opt/craftorio/resourcepacks", "/opt/craftorio/datapacks"]
 
 EXPOSE 25565
 

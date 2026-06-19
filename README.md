@@ -27,7 +27,6 @@
 | `1.18.2-arclight-1.0.12-forge-40.2.14` | Arclight | 17 | 1.18.2 | 40.2.14 | 1.0.12 |
 | `1.19.2-arclight-1.0.6-forge-43.4.4` | Arclight | 17 | 1.19.2 | 43.4.4 | 1.0.6 |
 | `1.19.4-arclight-1.0.8-forge-45.2.6` | Arclight | 17 | 1.19.4 | 45.2.6 | 1.0.8 |
-| `1.20.1-arclight-1.0.6-forge-47.3.22` | Arclight | 17 | 1.20.1 | 47.3.22 | 1.0.6 |
 | `1.20.1-arclight-1.0.6-forge-47.4.18` | Arclight | 17 | 1.20.1 | 47.4.18 | 1.0.6-SNAPSHOT |
 
 ## 🚀 Quick Start
@@ -39,7 +38,7 @@
 mkdir ~/my-minecraft-server && cd ~/my-minecraft-server
 
 # Create required directories
-mkdir -p worlds dynmap mods logs plugins config config-server Flan tacz resourcepacks datapacks
+mkdir -p world dynmap mods logs plugins config config-server Flan tacz resourcepacks datapacks
 
 # Set permissions (Linux/macOS)
 chown -R 1000:1000 .
@@ -132,7 +131,7 @@ services:
       - JVM_MEMORY_MAX=4096M
       - JVM_MEMORY_MIN=2048M
     volumes:
-      - ./worlds:/opt/craftorio/worlds
+      - ./world:/opt/craftorio/world
       - ./mods:/opt/craftorio/mods
       - ./logs:/opt/craftorio/logs
       - ./plugins:/opt/craftorio/plugins
@@ -193,7 +192,7 @@ PUSH=1 ./build.sh
 
 ```
 📂 Server Directory/
-├── 🌍 worlds/         # World saves
+├── 🌍 world/          # World saves
 ├── 🗺️ dynmap/         # Dynmap web files
 ├── 📦 mods/           # Forge mods
 ├── 📝 logs/           # Server logs

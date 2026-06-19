@@ -136,7 +136,7 @@ cd ${DATA_DIR} && DATA_DIR=$(pwd) && cd -
 BACKUP_DIR=${BACKUP_DIR-${DATA_DIR}/mcbackup};
 mkdir -p ${BACKUP_DIR} || exit 1
 
-mkdir -p ${DATA_DIR}/worlds || exit 1
+mkdir -p ${DATA_DIR}/world || exit 1
 mkdir -p ${DATA_DIR}/mods || exit 1
 mkdir -p ${DATA_DIR}/plugins || exit 1
 mkdir -p ${DATA_DIR}/logs || exit 1
@@ -232,7 +232,7 @@ SSH_PASS=${SSH_PASS-minecraft}
 -e SSH_PASS=${SSH_PASS} \
 -v ${BACKUP_DIR}:${MC_HOME}/mcbackup \
 -v ${DATA_DIR}/dynmap:${SERVER_HOME}/dynmap \
--v ${DATA_DIR}/worlds:${SERVER_HOME}/worlds \
+-v ${DATA_DIR}/world:${SERVER_HOME}/world \
 -v ${DATA_DIR}/mods:${SERVER_HOME}/mods \
 -v ${DATA_DIR}/plugins:${SERVER_HOME}/plugins \
 -v ${DATA_DIR}/logs:${SERVER_HOME}/logs \
