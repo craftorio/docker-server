@@ -26,6 +26,7 @@ jobs:
       v_1_18_2_arclight: ${{ steps.filter.outputs.v_1_18_2_arclight }}
       v_1_19_2_arclight: ${{ steps.filter.outputs.v_1_19_2_arclight }}
       v_1_19_4_arclight: ${{ steps.filter.outputs.v_1_19_4_arclight }}
+      v_1_20_1_forge: ${{ steps.filter.outputs.v_1_20_1_forge }}
       v_1_20_1_arclight_47_4_18: ${{ steps.filter.outputs.v_1_20_1_arclight_47_4_18 }}
       v_1_20_1_arclight_server: ${{ steps.filter.outputs.v_1_20_1_arclight_server }}
     steps:
@@ -40,6 +41,7 @@ jobs:
             shared:
               - 'docker/entrypoint.sh'
               - 'docker/java-jar-launcher.sh'
+              - 'docker/java-forge-launcher.sh'
               - 'docker/ultra-core/**'
               - 'docker/.dockerignore'
               - '.github/workflows/build-docker-server.yml'
@@ -55,6 +57,9 @@ jobs:
             v_1_19_4_arclight:
               - 'docker/1.19.4-arclight-1.0.8-forge-45.2.6/**'
               - 'docker/server/arclight/1.19.4/**'
+            v_1_20_1_forge:
+              - 'docker/1.20.1-forge-47.4.18/**'
+              - 'docker/server/forge/1.20.1/**'
             v_1_20_1_arclight_47_4_18:
               - 'docker/1.20.1-arclight-1.0.6-forge-47.4.18/**'
             v_1_20_1_arclight_server:
@@ -77,6 +82,7 @@ jobs:
           V_1_18_2_ARCLIGHT: ${{ needs.changes.outputs.v_1_18_2_arclight }}
           V_1_19_2_ARCLIGHT: ${{ needs.changes.outputs.v_1_19_2_arclight }}
           V_1_19_4_ARCLIGHT: ${{ needs.changes.outputs.v_1_19_4_arclight }}
+          V_1_20_1_FORGE: ${{ needs.changes.outputs.v_1_20_1_forge }}
           V_1_20_1_ARCLIGHT_47_4_18: ${{ needs.changes.outputs.v_1_20_1_arclight_47_4_18 }}
           V_1_20_1_ARCLIGHT_SERVER: ${{ needs.changes.outputs.v_1_20_1_arclight_server }}
         run: |
@@ -88,6 +94,7 @@ jobs:
               "1.18.2-arclight-1.0.12-forge-40.2.14"
               "1.19.2-arclight-1.0.6-forge-43.4.4"
               "1.19.4-arclight-1.0.8-forge-45.2.6"
+              "1.20.1-forge-47.4.18"
               "1.20.1-arclight-1.0.6-forge-47.4.18"
             )
           else
@@ -102,6 +109,9 @@ jobs:
             fi
             if [[ "$V_1_19_4_ARCLIGHT" == "true" ]]; then
               versions+=("1.19.4-arclight-1.0.8-forge-45.2.6")
+            fi
+            if [[ "$V_1_20_1_FORGE" == "true" ]]; then
+              versions+=("1.20.1-forge-47.4.18")
             fi
             if [[ "$V_1_20_1_ARCLIGHT_47_4_18" == "true" || "$V_1_20_1_ARCLIGHT_SERVER" == "true" ]]; then
               versions+=("1.20.1-arclight-1.0.6-forge-47.4.18")

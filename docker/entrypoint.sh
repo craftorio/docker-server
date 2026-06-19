@@ -11,10 +11,25 @@ USERNAME=${MC_USER:-"craftorio"}
 # Path to craftorio server directory
 MCPATH=${MCPATH:-"/opt/craftorio"}
 
+LAUNCHER="./java-jar-launcher.sh"
+
+# Modern Forge (1.17+) uses run.sh + unix_args.txt instead of a single jar
+if [[ -f "${MCPATH}/run.sh" ]]; then
+    FORGE_UNIX_ARGS=$(find "${MCPATH}/libraries/net/minecraftforge/forge" -name unix_args.txt 2>/dev/null | head -1)
+    if [[ -n "$FORGE_UNIX_ARGS" ]]; then
+        SERVICE="run.sh"
+        LAUNCHER="./java-forge-launcher.sh"
+        INVOCATION="nogui"
+        echo "Found modern Forge server: ${SERVICE}"
+    fi
+fi
+
 # Look for server jar files in order of preference
-SERVICE=`basename $(find ${MCPATH} -maxdepth 1 -iname "arclight-server.jar" | head -1)`
-if [ -n "$SERVICE" ]; then
-    echo "Found Arclight server jar: $SERVICE"
+if [ -z "$SERVICE" ]; then
+    SERVICE=`basename $(find ${MCPATH} -maxdepth 1 -iname "arclight-server.jar" | head -1)`
+    if [ -n "$SERVICE" ]; then
+        echo "Found Arclight server jar: $SERVICE"
+    fi
 fi
 
 # Fallback to other server jars
@@ -36,11 +51,11 @@ if [ -z "$SERVICE" ]; then
 fi
 
 if [ -z "$SERVICE" ]; then
-    echo "ERROR: No server jar file found!"
+    echo "ERROR: No server installation found!"
     exit 1
 fi
 
-echo "Selected server jar: $SERVICE"
+echo "Selected server: $SERVICE"
 
 # Name to use for the screen instance
 SCREEN="craftorio_server_screen"
@@ -54,7 +69,9 @@ export JVM_MEMORY_MAX=${JVM_MEMORY_MAX:-${MC_MAX_MEMORY:-"4096M"}}
 export INVOCATION_EXTRA_ARGS="-Dultra.core.config=${MCPATH}/ultra-core-agent-server.conf -javaagent:${MCPATH}/ultra-core-agent.jar -Djava.awt.headless=true -Dfile.encoding=UTF8 -Dsun.jnu.encoding=UTF8"
 
 JARFILE=$MCPATH/$SERVICE
-INVOCATION="$JARFILE"
+if [[ -z "${INVOCATION:-}" ]]; then
+    INVOCATION="$JARFILE"
+fi
 
 PIDFILE=${MCPATH}/${SCREEN}.pid
 
@@ -206,7 +223,7 @@ server_start() {
         JVM_MEMORY_START="$JVM_MEMORY_START" \
         JVM_MEMORY_MAX="$JVM_MEMORY_MAX" \
         INVOCATION_EXTRA_ARGS="$INVOCATION_EXTRA_ARGS" \
-        bash -c "cd ${MCPATH} && exec ./java-jar-launcher.sh ${INVOCATION}"
+        bash -c "cd ${MCPATH} && exec ${LAUNCHER} ${INVOCATION}"
     screen -list | grep "\.$SCREEN" | cut -f1 -d'.' | tr -d -c 0-9 > $PIDFILE
 }
 
@@ -215,7 +232,7 @@ server_init() {
     sleep 1
 
     FINISH_PATTERN='Done \(.*\)! For help, type "help"'
-    ./java-jar-launcher.sh $INVOCATION > /proc/self/fd/1 2>&1 &
+    ${LAUNCHER} ${INVOCATION} > /proc/self/fd/1 2>&1 &
     wait_for_pattern_in_file "${FINISH_PATTERN}" "${MCPATH}/logs/latest.log" "${INIT_TIMEOUT_SECONDS}" "Server initialization" || {
         echo "Init timeout reached (${INIT_TIMEOUT}). Terminating..."
         exit 1
@@ -223,7 +240,7 @@ server_init() {
 
     sleep 2
 
-    pid=$(ps aux | grep -v grep | grep "$INVOCATION" | awk '{ print $2 }')
+    pid=$(ps aux | grep -v grep | grep "${LAUNCHER}" | awk '{ print $2 }')
     
     if [ -n "$pid" ]; then
         kill -15 $pid
