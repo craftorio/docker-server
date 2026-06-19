@@ -50,6 +50,7 @@ chown -R 1000:1000 .
 docker run -d \
   --name minecraft-server \
   --restart unless-stopped \
+  --dns 8.8.8.8 \
   -e JVM_MEMORY_MAX=4096M \
   -p 12565:25565 \
   -v ${PWD}/world:/opt/craftorio/world \
