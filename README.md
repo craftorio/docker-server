@@ -112,6 +112,8 @@ Place your data packs in the `datapacks/` folder to:
 | `JVM_MEMORY_MIN` | `1024M` | Minimum JVM heap size |
 | `MC_AUTH_SERVER` | `auth.craftorio.com` | Authentication server |
 | `MC_AUTH_SESSION_SERVER` | `sessionserver.craftorio.com` | Session server |
+| `INIT_TIMEOUT` | `600s` | First-start initialization timeout |
+| `INIT_TIMEOUT_SECONDS` | `600` | Same timeout in seconds for startup progress checks |
 
 ## 🐳 Docker Compose
 

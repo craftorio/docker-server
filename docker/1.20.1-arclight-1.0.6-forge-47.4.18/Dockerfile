@@ -78,6 +78,13 @@ RUN --mount=type=cache,target=/tmp/cache-libraries,uid=1000,gid=1000 \
 RUN mv arclight-forge-${MC_VERSION}-${ARCLIGHT_VERSION}.jar arclight-server.jar && \
     echo "Server files:" && ls -la /opt/craftorio/
 
+# Keep first-run configs outside the config-server volume mount
+RUN bash -c 'mkdir -p config-server.defaults && shopt -s nullglob && \
+    for f in server.properties banned-ips.json banned-players.json ops.json whitelist.json *.yml *.conf; do \
+      [[ "$(basename "$f")" == "ultra-core-agent-server.conf.tpl" ]] && continue; \
+      [[ -f "$f" ]] && mv "$f" config-server.defaults/; \
+    done'
+
 RUN mkdir -p \
     /opt/craftorio/world \
     /opt/craftorio/dynmap \

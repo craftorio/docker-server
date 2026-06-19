@@ -2,15 +2,14 @@
 set -e
 if [[ -n $DEBUG ]]; then set -x; fi
 
-INIT_TIMEOUT=${INIT_TIMEOUT:-"120s"}
+INIT_TIMEOUT=${INIT_TIMEOUT:-"600s"}
+INIT_TIMEOUT_SECONDS=${INIT_TIMEOUT_SECONDS:-600}
 
 # User that should run the server
 USERNAME=${MC_USER:-"craftorio"}
 
 # Path to craftorio server directory
 MCPATH=${MCPATH:-"/opt/craftorio"}
-
-# Name of the server jar
 
 # Look for server jar files in order of preference
 SERVICE=`basename $(find ${MCPATH} -maxdepth 1 -iname "arclight-server.jar" | head -1)`
@@ -47,12 +46,10 @@ echo "Selected server jar: $SERVICE"
 SCREEN="craftorio_server_screen"
 
 # Initial memory usage
-export JVM_MEMORY_START=${JVM_MEMORY_START:-${MC_INIT_MEMORY:-"1024M"}}
+export JVM_MEMORY_START=${JVM_MEMORY_START:-${MC_INIT_MEMORY:-"2048M"}}
 
 # Maximum amount of memory to use
-# Remember: give the ramdisk enough space, subtract from the total amount
-# of RAM available the size of your map and the RAM-consumption of your base system.
-export JVM_MEMORY_MAX=${JVM_MEMORY_MAX:-${MC_MAX_MEMORY:-"1024M"}}
+export JVM_MEMORY_MAX=${JVM_MEMORY_MAX:-${MC_MAX_MEMORY:-"4096M"}}
 
 export INVOCATION_EXTRA_ARGS="-Dultra.core.config=${MCPATH}/ultra-core-agent-server.conf -javaagent:${MCPATH}/ultra-core-agent.jar -Djava.awt.headless=true -Dfile.encoding=UTF8 -Dsun.jnu.encoding=UTF8"
 
@@ -62,6 +59,72 @@ INVOCATION="$JARFILE"
 PIDFILE=${MCPATH}/${SCREEN}.pid
 
 cd $MCPATH && echo "eula=true" > eula.txt
+
+config_server_is_empty() {
+    [[ 0 -eq $(ls "${MCPATH}/config-server" 2>/dev/null | grep -v eula.txt | wc -l) ]]
+}
+
+wait_for_pattern_in_file() {
+    local pattern="$1"
+    local file="$2"
+    local timeout="$3"
+    local label="$4"
+    local elapsed=0
+
+    while ! grep -E "${pattern}" "${file}" >/dev/null 2>&1; do
+        if (( elapsed >= timeout )); then
+            echo "${label} timeout after ${timeout}s"
+            return 1
+        fi
+        if (( elapsed > 0 && elapsed % 15 == 0 )); then
+            echo "${label}... still starting (${elapsed}s elapsed)"
+            if [[ -f "${file}" ]]; then
+                tail -n 3 "${file}" 2>/dev/null || true
+            fi
+        fi
+        sleep 1
+        elapsed=$((elapsed + 1))
+    done
+
+    return 0
+}
+
+migrate_generated_configs() {
+    shopt -s nullglob
+
+    files=("${MCPATH}"/*.yml)
+    if (( ${#files[@]} )); then
+        mv "${files[@]}" "${MCPATH}/config-server/"
+    fi
+
+    for file in "${MCPATH}"/*.conf; do
+        [[ "$(basename "${file}")" == "ultra-core-agent-server.conf.tpl" ]] && continue
+        mv "${file}" "${MCPATH}/config-server/"
+    done
+
+    for file in server.properties banned-players.json banned-ips.json ops.json whitelist.json; do
+        if [[ -f "${MCPATH}/${file}" ]]; then
+            mv "${MCPATH}/${file}" "${MCPATH}/config-server/${file}"
+        fi
+    done
+}
+
+seed_config_server() {
+    if [[ -d "${MCPATH}/config-server.defaults" ]] && \
+       [[ 0 -lt $(find "${MCPATH}/config-server.defaults" -mindepth 1 ! -name eula.txt | wc -l) ]]; then
+        cp -a "${MCPATH}/config-server.defaults/." "${MCPATH}/config-server/"
+        echo "Initialized config-server from image defaults."
+        return 0
+    fi
+
+    migrate_generated_configs
+    if config_server_is_empty; then
+        return 1
+    fi
+
+    echo "Initialized config-server from bundled server files."
+    return 0
+}
 
 is_running() {
     if [ -f "$PIDFILE" ]; then 
@@ -137,55 +200,38 @@ server_start() {
     [[ -e logs/latest.log ]] && rm -f logs/latest.log
     envsubst < ${MCPATH}/ultra-core-agent-server.conf.tpl > ${MCPATH}/ultra-core-agent-server.conf
     
-    # GUI setup is now handled by java-jar-launcher.sh
-    
-    echo "Invocating: $INVOCATION"
-    screen -dmS $SCREEN bash -c "exec ./java-jar-launcher.sh $INVOCATION"
+    echo "Starting server: $INVOCATION"
+    echo "Arclight/Forge startup can take 1-3 minutes before new log lines appear."
+    screen -dmS "$SCREEN" env \
+        JVM_MEMORY_START="$JVM_MEMORY_START" \
+        JVM_MEMORY_MAX="$JVM_MEMORY_MAX" \
+        INVOCATION_EXTRA_ARGS="$INVOCATION_EXTRA_ARGS" \
+        bash -c "cd ${MCPATH} && exec ./java-jar-launcher.sh ${INVOCATION}"
     screen -list | grep "\.$SCREEN" | cut -f1 -d'.' | tr -d -c 0-9 > $PIDFILE
 }
 
 server_init() {
-    echo "Detected first start, beginning initialization..."
+    echo "Detected first start without bundled defaults, running full initialization..."
     sleep 1
-    
-    # GUI setup is now handled by java-jar-launcher.sh
-    
+
     FINISH_PATTERN='Done \(.*\)! For help, type "help"'
-    set -x
     ./java-jar-launcher.sh $INVOCATION > /proc/self/fd/1 2>&1 &
-    timeout "${INIT_TIMEOUT}" bash -c "until grep '${FINISH_PATTERN}' logs/latest.log > /dev/null 2> /dev/null; do sleep 1; done" || {
-        echo "Init timeout reached (${INIT_TIMEOUT}), terminating..."
+    wait_for_pattern_in_file "${FINISH_PATTERN}" "${MCPATH}/logs/latest.log" "${INIT_TIMEOUT_SECONDS}" "Server initialization" || {
+        echo "Init timeout reached (${INIT_TIMEOUT}). Terminating..."
         exit 1
     }
-    set +x
-    
+
     sleep 2
 
-    pid=$(ps aux | grep -v grep | grep "$INVOCATION" | awk '{ print $1 }')
+    pid=$(ps aux | grep -v grep | grep "$INVOCATION" | awk '{ print $2 }')
     
-    if [ -n $pid ]; then
+    if [ -n "$pid" ]; then
         kill -15 $pid
         wait $pid 2>/dev/null || /bin/true
     fi
     
-    # Clean up logs
     find /opt/craftorio -name "*.log" -type f -delete 2>/dev/null || true
-    
-    shopt -s nullglob
-    files=(/opt/craftorio/*.yml)
-    if (( ${#files[@]} )); then
-        mv "${files[@]}" /opt/craftorio/config-server/
-    fi
-    
-    files=(/opt/craftorio/*.conf)
-    if (( ${#files[@]} )); then
-        mv "${files[@]}" /opt/craftorio/config-server/
-    fi
-    mv /opt/craftorio/server.properties /opt/craftorio/config-server/server.properties
-    mv /opt/craftorio/banned-players.json /opt/craftorio/config-server/banned-players.json
-    mv /opt/craftorio/banned-ips.json /opt/craftorio/config-server/banned-ips.json
-    mv /opt/craftorio/ops.json /opt/craftorio/config-server/ops.json
-    mv /opt/craftorio/whitelist.json /opt/craftorio/config-server/whitelist.json
+    migrate_generated_configs
 }
 
 server_command() {
@@ -200,8 +246,10 @@ trap 'server_stop' SIGTSTP
 trap 'server_stop' SIGINT
 
 if [ -z $1 ] || [ $1 == 'server_start' ]; then
-    if [[ 0 -eq $(ls /opt/craftorio/config-server | grep -v eula.txt | wc -l) ]]; then
-        server_init
+    if config_server_is_empty; then
+        if ! seed_config_server; then
+            server_init
+        fi
     fi
 
     while read filename; do
@@ -212,7 +260,10 @@ if [ -z $1 ] || [ $1 == 'server_start' ]; then
     done < <(ls /opt/craftorio/config-server/) 
 
     server_start
-    until [[ -e logs/latest.log ]]; do sleep 1; done
+    wait_for_pattern_in_file '.' "${MCPATH}/logs/latest.log" 120 "Waiting for server log file" || {
+        echo "Server log file was not created within 120s"
+        exit 1
+    }
     tail -f logs/latest.log
 else
     exec "$@"
