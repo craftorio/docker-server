@@ -51,8 +51,8 @@ docker run -d \
   --name minecraft-server \
   --restart unless-stopped \
   -e JVM_MEMORY_MAX=4096M \
-  -p 25565:25565 \
-  -v ${PWD}/worlds:/opt/craftorio/worlds \
+  -p 12565:25565 \
+  -v ${PWD}/world:/opt/craftorio/world \
   -v ${PWD}/mods:/opt/craftorio/mods \
   -v ${PWD}/logs:/opt/craftorio/logs \
   -v ${PWD}/plugins:/opt/craftorio/plugins \
