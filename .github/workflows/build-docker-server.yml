@@ -16,23 +16,130 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: docker-server-minecraft
 
-concurrency:
-  group: docker-server-${{ github.ref_name }}
-  cancel-in-progress: true
-
 jobs:
+  changes:
+    name: Detect changed images
+    runs-on: ubuntu-latest
+    outputs:
+      shared: ${{ steps.filter.outputs.shared }}
+      v_1_12_2_forge: ${{ steps.filter.outputs.v_1_12_2_forge }}
+      v_1_18_2_arclight: ${{ steps.filter.outputs.v_1_18_2_arclight }}
+      v_1_19_2_arclight: ${{ steps.filter.outputs.v_1_19_2_arclight }}
+      v_1_19_4_arclight: ${{ steps.filter.outputs.v_1_19_4_arclight }}
+      v_1_20_1_arclight_47_3_22: ${{ steps.filter.outputs.v_1_20_1_arclight_47_3_22 }}
+      v_1_20_1_arclight_47_4_18: ${{ steps.filter.outputs.v_1_20_1_arclight_47_4_18 }}
+      v_1_20_1_arclight_server: ${{ steps.filter.outputs.v_1_20_1_arclight_server }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect path changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            shared:
+              - 'docker/entrypoint.sh'
+              - 'docker/java-jar-launcher.sh'
+              - 'docker/ultra-core/**'
+              - 'docker/.dockerignore'
+              - '.github/workflows/build-docker-server.yml'
+            v_1_12_2_forge:
+              - 'docker/1.12.2-forge-14.23.5.2860/**'
+              - 'docker/server/forge/1.12.2/**'
+            v_1_18_2_arclight:
+              - 'docker/1.18.2-arclight-1.0.12-forge-40.2.14/**'
+              - 'docker/server/arclight/1.18.2/**'
+            v_1_19_2_arclight:
+              - 'docker/1.19.2-arclight-1.0.6-forge-43.4.4/**'
+              - 'docker/server/arclight/1.19.2/**'
+            v_1_19_4_arclight:
+              - 'docker/1.19.4-arclight-1.0.8-forge-45.2.6/**'
+              - 'docker/server/arclight/1.19.4/**'
+            v_1_20_1_arclight_47_3_22:
+              - 'docker/1.20.1-arclight-1.0.6-forge-47.3.22/**'
+            v_1_20_1_arclight_47_4_18:
+              - 'docker/1.20.1-arclight-1.0.6-forge-47.4.18/**'
+            v_1_20_1_arclight_server:
+              - 'docker/server/arclight/1.20.1/**'
+
+  prepare:
+    name: Prepare build matrix
+    needs: changes
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.matrix.outputs.versions }}
+      has_changes: ${{ steps.matrix.outputs.has_changes }}
+    steps:
+      - name: Build version matrix
+        id: matrix
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SHARED: ${{ needs.changes.outputs.shared }}
+          V_1_12_2_FORGE: ${{ needs.changes.outputs.v_1_12_2_forge }}
+          V_1_18_2_ARCLIGHT: ${{ needs.changes.outputs.v_1_18_2_arclight }}
+          V_1_19_2_ARCLIGHT: ${{ needs.changes.outputs.v_1_19_2_arclight }}
+          V_1_19_4_ARCLIGHT: ${{ needs.changes.outputs.v_1_19_4_arclight }}
+          V_1_20_1_ARCLIGHT_47_3_22: ${{ needs.changes.outputs.v_1_20_1_arclight_47_3_22 }}
+          V_1_20_1_ARCLIGHT_47_4_18: ${{ needs.changes.outputs.v_1_20_1_arclight_47_4_18 }}
+          V_1_20_1_ARCLIGHT_SERVER: ${{ needs.changes.outputs.v_1_20_1_arclight_server }}
+        run: |
+          versions=()
+
+          if [[ "$EVENT_NAME" == "workflow_dispatch" || "$SHARED" == "true" ]]; then
+            versions=(
+              "1.12.2-forge-14.23.5.2860"
+              "1.18.2-arclight-1.0.12-forge-40.2.14"
+              "1.19.2-arclight-1.0.6-forge-43.4.4"
+              "1.19.4-arclight-1.0.8-forge-45.2.6"
+              "1.20.1-arclight-1.0.6-forge-47.3.22"
+              "1.20.1-arclight-1.0.6-forge-47.4.18"
+            )
+          else
+            if [[ "$V_1_12_2_FORGE" == "true" ]]; then
+              versions+=("1.12.2-forge-14.23.5.2860")
+            fi
+            if [[ "$V_1_18_2_ARCLIGHT" == "true" ]]; then
+              versions+=("1.18.2-arclight-1.0.12-forge-40.2.14")
+            fi
+            if [[ "$V_1_19_2_ARCLIGHT" == "true" ]]; then
+              versions+=("1.19.2-arclight-1.0.6-forge-43.4.4")
+            fi
+            if [[ "$V_1_19_4_ARCLIGHT" == "true" ]]; then
+              versions+=("1.19.4-arclight-1.0.8-forge-45.2.6")
+            fi
+            if [[ "$V_1_20_1_ARCLIGHT_47_3_22" == "true" || "$V_1_20_1_ARCLIGHT_SERVER" == "true" ]]; then
+              versions+=("1.20.1-arclight-1.0.6-forge-47.3.22")
+            fi
+            if [[ "$V_1_20_1_ARCLIGHT_47_4_18" == "true" || "$V_1_20_1_ARCLIGHT_SERVER" == "true" ]]; then
+              versions+=("1.20.1-arclight-1.0.6-forge-47.4.18")
+            fi
+          fi
+
+          if [[ ${#versions[@]} -eq 0 ]]; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "versions=[]" >> "$GITHUB_OUTPUT"
+            echo "No image changes detected"
+            exit 0
+          fi
+
+          versions_json=$(printf '%s\n' "${versions[@]}" | jq -R . | jq -s -c .)
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          echo "versions=${versions_json}" >> "$GITHUB_OUTPUT"
+          echo "Selected versions: ${versions_json}"
+
   build:
     name: Build image (${{ matrix.version }} / ${{ matrix.arch_name }})
+    needs: prepare
+    if: needs.prepare.outputs.has_changes == 'true'
     runs-on: ${{ matrix.runner }}
+    concurrency:
+      group: docker-server-${{ github.ref_name }}-${{ matrix.version }}
+      cancel-in-progress: true
     strategy:
       fail-fast: false
       matrix:
-        version:
-          - "1.12.2-forge-14.23.5.2860"
-          - "1.18.2-arclight-1.0.12-forge-40.2.14"
-          - "1.19.2-arclight-1.0.6-forge-43.4.4"
-          - "1.19.4-arclight-1.0.8-forge-45.2.6"
-          - "1.20.1-arclight-1.0.6-forge-47.3.22"
+        version: ${{ fromJson(needs.prepare.outputs.versions) }}
         arch_name:
           - amd64
           - arm64
@@ -98,17 +205,16 @@ jobs:
 
   create-manifest:
     name: Create manifest (${{ matrix.version }})
-    needs: [build]
+    needs: [prepare, build]
+    if: needs.prepare.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
+    concurrency:
+      group: docker-server-manifest-${{ github.ref_name }}-${{ matrix.version }}
+      cancel-in-progress: true
     strategy:
       fail-fast: false
       matrix:
-        version:
-          - "1.12.2-forge-14.23.5.2860"
-          - "1.18.2-arclight-1.0.12-forge-40.2.14"
-          - "1.19.2-arclight-1.0.6-forge-43.4.4"
-          - "1.19.4-arclight-1.0.8-forge-45.2.6"
-          - "1.20.1-arclight-1.0.6-forge-47.3.22"
+        version: ${{ fromJson(needs.prepare.outputs.versions) }}
 
     steps:
       - name: Set up Docker Buildx
