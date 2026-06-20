@@ -4,6 +4,7 @@ if [[ -n $DEBUG ]]; then set -x; fi
 
 INIT_TIMEOUT=${INIT_TIMEOUT:-"600s"}
 INIT_TIMEOUT_SECONDS=${INIT_TIMEOUT_SECONDS:-600}
+MC_RESTART_DELAY=${MC_RESTART_DELAY:-10}
 
 # User that should run the server
 USERNAME=${MC_USER:-"craftorio"}
@@ -214,6 +215,7 @@ server_stop() {
 }
 
 server_start() {
+    mkdir -p logs
     [[ -e logs/latest.log ]] && rm -f logs/latest.log
     envsubst < ${MCPATH}/ultra-core-agent-server.conf.tpl > ${MCPATH}/ultra-core-agent-server.conf
     
@@ -223,8 +225,36 @@ server_start() {
         JVM_MEMORY_START="$JVM_MEMORY_START" \
         JVM_MEMORY_MAX="$JVM_MEMORY_MAX" \
         INVOCATION_EXTRA_ARGS="$INVOCATION_EXTRA_ARGS" \
-        bash -c "cd ${MCPATH} && exec ${LAUNCHER} ${INVOCATION}"
+        bash -c "cd ${MCPATH} && ${LAUNCHER} ${INVOCATION} 2>&1 | tee -a logs/console.log"
     screen -list | grep "\.$SCREEN" | cut -f1 -d'.' | tr -d -c 0-9 > $PIDFILE
+}
+
+follow_server_logs() {
+    tail -F logs/latest.log logs/console.log 2>/dev/null &
+    echo $!
+}
+
+server_supervise() {
+    local tail_pid
+
+    while true; do
+        tail_pid=$(follow_server_logs)
+
+        while is_running; do
+            sleep 5
+        done
+
+        kill "$tail_pid" 2>/dev/null || true
+        wait "$tail_pid" 2>/dev/null || true
+
+        echo "Server process exited at $(date -u +%Y-%m-%dT%H:%M:%SZ), restarting in ${MC_RESTART_DELAY}s..."
+        sleep "$MC_RESTART_DELAY"
+
+        server_start
+        wait_for_pattern_in_file '.' "${MCPATH}/logs/latest.log" 120 "Waiting for server log after restart" || {
+            echo "Restart failed: log file not created within 120s, retrying..."
+        }
+    done
 }
 
 server_init() {
@@ -259,8 +289,12 @@ server_command() {
     fi
 }
 
-trap 'server_stop' SIGTSTP
-trap 'server_stop' SIGINT
+shutdown() {
+    server_stop
+    exit 0
+}
+
+trap shutdown SIGTERM SIGINT SIGTSTP
 
 if [ -z $1 ] || [ $1 == 'server_start' ]; then
     if config_server_is_empty; then
@@ -281,7 +315,7 @@ if [ -z $1 ] || [ $1 == 'server_start' ]; then
         echo "Server log file was not created within 120s"
         exit 1
     }
-    tail -f logs/latest.log
+    server_supervise
 else
     exec "$@"
 fi
