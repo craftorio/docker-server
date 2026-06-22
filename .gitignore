@@ -1,1 +1,23 @@
-.idea
+.idea/
+
+# Local Forge/Arclight server runtime (installer output, not part of the image repo)
+/.arclight/
+/arclight.conf
+/libraries/
+/logs/
+/mods/
+/config/
+/defaultconfigs/
+/run.sh
+/run.bat
+/user_jvm_args.txt
+/forge-*-installer.jar
+/*installer*.jar.log
+/eula.txt
+/server.properties
+/world/
+/world*/
+/banned-*.json
+/ops.json
+/whitelist.json
+/usercache.json
