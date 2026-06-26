@@ -144,37 +144,53 @@ seed_config_server() {
     return 0
 }
 
-is_running() {
-    if [ -f "$PIDFILE" ]; then 
-        pid=$(head -1 $PIDFILE)
-        
-        if ! ps ax | grep -v grep | grep "${pid}" | grep "${SCREEN}" > /dev/null; then
-          if ps aux | grep "${SCREEN}" | grep -v grep; then
-            pid=$(ps aux | grep "${SCREEN}" | grep -v grep | awk '{print $2}')
-            echo $pid > $PIDFILE
-            echo "Pid restored to $pid"
-          fi
-        fi
-        
-        if ps ax | grep -v grep | grep "${pid}" | grep "${SCREEN}" > /dev/null; then
-            return 0
-        else
-            return 1
-        fi
-    else
-        if ps ax | grep -v grep | grep "${SCREEN} ${INVOCATION}" > /dev/null; then
-            echo "No PIDFILE found, but server running."
-            echo "Re-creating the PIDFILE."
+screen_session_exists() {
+    screen -list 2>/dev/null | grep -q "\\.${SCREEN}[[:space:]]"
+}
 
-            pid=$(ps ax | grep -v grep | grep "${SCREEN} ${INVOCATION}" | cut -f1 -d' ')
-            
-            echo $pid > $PIDFILE
-
+java_is_running() {
+    local pid cwd
+    for pid in $(ps ax 2>/dev/null | awk '/[j]ava/ {print $1}'); do
+        cwd=$(readlink "/proc/${pid}/cwd" 2>/dev/null || true)
+        if [[ "$cwd" == "${MCPATH}" ]]; then
             return 0
-        else
-            return 1
         fi
+    done
+    return 1
+}
+
+write_screen_pid() {
+    local pid
+    pid=$(screen -list 2>/dev/null | grep "\\.${SCREEN}" | head -1 | cut -f1 -d'.' | tr -d -c 0-9 || true)
+    if [[ -z "$pid" ]]; then
+        rm -f "$PIDFILE"
+        return 1
     fi
+    echo "$pid" > "$PIDFILE"
+}
+
+cleanup_stale_screen() {
+    if screen_session_exists; then
+        echo "Quitting stale screen session (Java is not running)..."
+        screen -S "$SCREEN" -X quit 2>/dev/null || true
+    fi
+    rm -f "$PIDFILE"
+}
+
+is_running() {
+    if java_is_running; then
+        if screen_session_exists; then
+            write_screen_pid || true
+        fi
+        return 0
+    fi
+
+    if screen_session_exists; then
+        cleanup_stale_screen
+    else
+        rm -f "$PIDFILE"
+    fi
+    return 1
 }
 
 server_say() {
@@ -205,7 +221,13 @@ server_stop() {
         fi
         if [ $seconds -eq 30 ]; then
             echo "Timeout reached, terminating..."
-            kill -9 $(head -1 $PIDFILE)
+            ps ax 2>/dev/null | awk '/[j]ava/ {print $1}' | while read -r pid; do
+                cwd=$(readlink "/proc/${pid}/cwd" 2>/dev/null || true)
+                if [[ "$cwd" == "${MCPATH}" ]]; then
+                    kill -9 "$pid" 2>/dev/null || true
+                fi
+            done
+            cleanup_stale_screen
         fi
     done
 
@@ -226,7 +248,8 @@ server_start() {
         JVM_MEMORY_MAX="$JVM_MEMORY_MAX" \
         INVOCATION_EXTRA_ARGS="$INVOCATION_EXTRA_ARGS" \
         bash -c "cd ${MCPATH} && ${LAUNCHER} ${INVOCATION} 2>&1 | tee -a logs/console.log"
-    screen -list | grep "\.$SCREEN" | cut -f1 -d'.' | tr -d -c 0-9 > $PIDFILE
+    sleep 0.2
+    write_screen_pid || echo "WARNING: screen session not found immediately after start"
 }
 
 follow_server_logs() {
