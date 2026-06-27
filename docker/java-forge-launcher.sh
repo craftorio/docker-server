@@ -20,6 +20,8 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
+. "$(dirname "$0")/jvm-gc-args.sh"
+
 FORGE_ARGS=$(find libraries/net/minecraftforge/forge -name unix_args.txt 2>/dev/null | head -1)
 if [ -z "$FORGE_ARGS" ]; then
     echo "ERROR: Forge unix_args.txt not found under libraries/net/minecraftforge/forge"
@@ -29,14 +31,7 @@ fi
 exec java $INVOCATION_EXTRA_ARGS \
     -Xms${JVM_MEMORY_START:-2048M} \
     -Xmx${JVM_MEMORY_MAX:-4096M} \
-    -XX:+UseG1GC \
-    -XX:+ParallelRefProcEnabled \
-    -XX:MaxGCPauseMillis=500 \
-    -XX:+DisableExplicitGC \
-    -XX:G1HeapRegionSize=16M \
-    -XX:G1ReservePercent=15 \
-    -XX:InitiatingHeapOccupancyPercent=35 \
-    -XX:+PerfDisableSharedMem \
+    $JVM_GC_ARGS \
     -Djava.awt.headless=true \
     -Dfile.encoding=UTF8 \
     -Dsun.jnu.encoding=UTF8 \

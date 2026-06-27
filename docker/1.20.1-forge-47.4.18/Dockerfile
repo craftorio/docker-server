@@ -40,6 +40,7 @@ WORKDIR /opt/craftorio
 
 COPY --chown=craftorio:craftorio --chmod=0700 java-jar-launcher.sh java-jar-launcher.sh
 COPY --chown=craftorio:craftorio --chmod=0700 java-forge-launcher.sh java-forge-launcher.sh
+COPY --chown=craftorio:craftorio --chmod=0700 jvm-gc-args.sh jvm-gc-args.sh
 COPY --chown=craftorio:craftorio ultra-core/ultra-core-agent-java17.jar ultra-core-agent.jar
 COPY --chown=craftorio:craftorio ultra-core/ultra-core-agent-server.conf.tpl ultra-core-agent-server.conf.tpl
 COPY --chown=craftorio:craftorio server/forge/${MC_VERSION}/forge-${MC_VERSION}-${FORGE_VERSION}-installer.jar forge-installer.jar

@@ -112,6 +112,7 @@ Place your data packs in the `datapacks/` folder to:
 |----------|---------|-------------|
 | `JVM_MEMORY_MAX` | `2048M` | Maximum JVM heap size |
 | `JVM_MEMORY_MIN` | `1024M` | Minimum JVM heap size |
+| `JVM_GC` | `g1` | Garbage collector: `g1` or `shenandoah` (Java 17+ images only) |
 | `MC_AUTH_SERVER` | `auth.craftorio.com` | Authentication server |
 | `MC_AUTH_SESSION_SERVER` | `sessionserver.craftorio.com` | Session server |
 | `INIT_TIMEOUT` | `600s` | First-start initialization timeout |

@@ -41,6 +41,7 @@ WORKDIR /opt/craftorio
 
 # Copy java launcher
 COPY --chown=craftorio:craftorio --chmod=0700 java-jar-launcher.sh java-jar-launcher.sh
+COPY --chown=craftorio:craftorio --chmod=0700 jvm-gc-args.sh jvm-gc-args.sh
 
 # Copy ultra-core
 COPY --chown=craftorio:craftorio ultra-core/ultra-core-agent-java17.jar ultra-core-agent.jar

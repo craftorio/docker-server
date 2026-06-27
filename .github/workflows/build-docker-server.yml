@@ -42,6 +42,7 @@ jobs:
               - 'docker/entrypoint.sh'
               - 'docker/java-jar-launcher.sh'
               - 'docker/java-forge-launcher.sh'
+              - 'docker/jvm-gc-args.sh'
               - 'docker/ultra-core/**'
               - 'docker/.dockerignore'
               - '.github/workflows/build-docker-server.yml'

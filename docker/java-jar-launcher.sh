@@ -22,18 +22,13 @@ cleanup() {
 # Set trap to cleanup on exit
 trap cleanup EXIT INT TERM
 
+. "$(dirname "$0")/jvm-gc-args.sh"
+
 # Launch Java with stable settings for Arclight
 exec java $INVOCATION_EXTRA_ARGS \
     -Xms${JVM_MEMORY_START:-2048M} \
     -Xmx${JVM_MEMORY_MAX:-4096M} \
-    -XX:+UseG1GC \
-    -XX:+ParallelRefProcEnabled \
-    -XX:MaxGCPauseMillis=500 \
-    -XX:+DisableExplicitGC \
-    -XX:G1HeapRegionSize=16M \
-    -XX:G1ReservePercent=15 \
-    -XX:InitiatingHeapOccupancyPercent=35 \
-    -XX:+PerfDisableSharedMem \
+    $JVM_GC_ARGS \
     -Djava.awt.headless=true \
     -Dfile.encoding=UTF8 \
     -Dsun.jnu.encoding=UTF8 \
