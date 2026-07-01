@@ -1,20 +1,10 @@
-FROM azul/zulu-openjdk-alpine:8-jre AS base
+FROM azul/zulu-openjdk:8-jre AS base
 
-# Cache APK packages for faster builds
-RUN --mount=type=cache,target=/var/cache/apk \
-    echo "http://dl-2.alpinelinux.org/alpine/edge/community/" >> /etc/apk/repositories && \
-    apk add --no-cache \
-    shadow \
-    screen \
-    bash \
-    gettext \
-    fontconfig \
-    ttf-dejavu \
-    ttf-liberation \
-    fontconfig-dev \
-    xvfb && \
-    fc-cache -fv
- 
+COPY install-base-packages.sh /tmp/install-base-packages.sh
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    chmod +x /tmp/install-base-packages.sh && /tmp/install-base-packages.sh && rm /tmp/install-base-packages.sh
+
 RUN groupadd -g 1000 craftorio \
     && useradd -u 1000 -d /opt/craftorio -g craftorio -s /bin/bash -m craftorio \
     && mkdir -p /opt/craftorio \
