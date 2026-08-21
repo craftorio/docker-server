@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/docker-multi--arch-blue?logo=docker)](https://github.com/craftorio/docker-server)
 
-> 🐳 **Multi-architecture Docker images** for Minecraft servers with **Forge** and **Arclight** support
+> 🐳 **Multi-architecture Docker images** for Minecraft servers with **Forge**, **NeoForge**, and **Arclight** support
 
 ---
 
@@ -13,7 +13,7 @@
 
 - 🏗️ **Multi-platform support**: AMD64 & ARM64
 - ⚡ **Optimized performance** with built-in caching
-- 🔧 **Multiple Minecraft versions** (Forge + Arclight)
+- 🔧 **Multiple Minecraft versions** (Forge + NeoForge + Arclight)
 - 🔄 **Automatic builds** via GitHub Actions
 - 📦 **Published to GitHub Container Registry**
 - 🛡️ **Production-ready** configurations
@@ -21,14 +21,15 @@
 
 ## 🎮 Supported Versions
 
-| Version | Type | Java | Minecraft | Forge | Arclight |
-|---------|------|------|-----------|-------|----------|
+| Version | Type | Java | Minecraft | Forge / NeoForge | Arclight |
+|---------|------|------|-----------|------------------|----------|
 | `1.12.2-forge-14.23.5.2860` | Forge | 8 | 1.12.2 | 14.23.5.2860 | - |
 | `1.18.2-arclight-1.0.12-forge-40.2.14` | Arclight | 17 | 1.18.2 | 40.2.14 | 1.0.12 |
 | `1.19.2-arclight-1.0.6-forge-43.4.4` | Arclight | 17 | 1.19.2 | 43.4.4 | 1.0.6 |
 | `1.19.4-arclight-1.0.8-forge-45.2.6` | Arclight | 17 | 1.19.4 | 45.2.6 | 1.0.8 |
 | `1.20.1-forge-47.4.18` | Forge | 17 | 1.20.1 | 47.4.18 | - |
 | `1.20.1-arclight-1.0.6-forge-47.4.18` | Arclight | 17 | 1.20.1 | 47.4.18 | 1.0.6-SNAPSHOT |
+| `1.21.1-neoforge-21.1.241` | NeoForge | 21 | 1.21.1 | 21.1.241 | - |
 
 ## 🚀 Quick Start
 

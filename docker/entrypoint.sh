@@ -14,14 +14,17 @@ MCPATH=${MCPATH:-"/opt/craftorio"}
 
 LAUNCHER="./java-jar-launcher.sh"
 
-# Modern Forge (1.17+) uses run.sh + unix_args.txt instead of a single jar
+# Modern Forge/NeoForge (1.17+) uses run.sh + unix_args.txt instead of a single jar
 if [[ -f "${MCPATH}/run.sh" ]]; then
     FORGE_UNIX_ARGS=$(find "${MCPATH}/libraries/net/minecraftforge/forge" -name unix_args.txt 2>/dev/null | head -1)
+    if [[ -z "$FORGE_UNIX_ARGS" ]]; then
+        FORGE_UNIX_ARGS=$(find "${MCPATH}/libraries/net/neoforged/neoforge" -name unix_args.txt 2>/dev/null | head -1)
+    fi
     if [[ -n "$FORGE_UNIX_ARGS" ]]; then
         SERVICE="run.sh"
         LAUNCHER="./java-forge-launcher.sh"
         INVOCATION="nogui"
-        echo "Found modern Forge server: ${SERVICE}"
+        echo "Found modern Forge/NeoForge server: ${SERVICE}"
     fi
 fi
 

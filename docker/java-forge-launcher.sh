@@ -24,7 +24,10 @@ trap cleanup EXIT INT TERM
 
 FORGE_ARGS=$(find libraries/net/minecraftforge/forge -name unix_args.txt 2>/dev/null | head -1)
 if [ -z "$FORGE_ARGS" ]; then
-    echo "ERROR: Forge unix_args.txt not found under libraries/net/minecraftforge/forge"
+    FORGE_ARGS=$(find libraries/net/neoforged/neoforge -name unix_args.txt 2>/dev/null | head -1)
+fi
+if [ -z "$FORGE_ARGS" ]; then
+    echo "ERROR: unix_args.txt not found under libraries/net/minecraftforge/forge or libraries/net/neoforged/neoforge"
     exit 1
 fi
 
