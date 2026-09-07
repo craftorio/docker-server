@@ -68,7 +68,7 @@ jobs:
             v_1_20_1_arclight_server:
               - 'docker/server/arclight/1.20.1/**'
             v_1_21_1_neoforge:
-              - 'docker/1.21.1-neoforge-21.1.241/**'
+              - 'docker/1.21.1-neoforge-21.1.248/**'
               - 'docker/server/neoforge/1.21.1/**'
 
   prepare:
@@ -103,7 +103,7 @@ jobs:
               "1.19.4-arclight-1.0.8-forge-45.2.6"
               "1.20.1-forge-47.4.18"
               "1.20.1-arclight-1.0.6-forge-47.4.18"
-              "1.21.1-neoforge-21.1.241"
+              "1.21.1-neoforge-21.1.248"
             )
           else
             if [[ "$V_1_12_2_FORGE" == "true" ]]; then
@@ -125,7 +125,7 @@ jobs:
               versions+=("1.20.1-arclight-1.0.6-forge-47.4.18")
             fi
             if [[ "$V_1_21_1_NEOFORGE" == "true" ]]; then
-              versions+=("1.21.1-neoforge-21.1.241")
+              versions+=("1.21.1-neoforge-21.1.248")
             fi
           fi
 
