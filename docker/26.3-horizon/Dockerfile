@@ -5,15 +5,21 @@
 # The image holds none of Minecraft's files: mount the prepared resources (horizon/resources of the client
 # bundle) read-only on /opt/horizon/.local/horizon-client/26.3. The server folder is the /opt/craftorio volume;
 # the first start writes server.toml there from HORIZON_* (WORLD, SEED, PORT, WHITELIST, PLAYERS, OP), later
-# starts use the file. Players log in through Craftorio's accounts: HORIZON_API_DISCOVERY.
+# starts use the file. Players log in through Craftorio's accounts: HORIZON_API_DISCOVERY. Mods: <id>.hmod in
+# horizon-mods/ of the server folder, turned on by `mod.<id>:true` lines in horizon-mods.txt there; clients must
+# have exactly the same mods (craftorio-launcher ships them, apps/horizon-mods).
 FROM rust:1-slim-bookworm AS build
 WORKDIR /src
 COPY 26.3-horizon/horizon-src/ .
 ARG HORIZON_GAME_BUILD_ID
-# The server build of the game (no sound, no controllers: neither ALSA nor udev) as horizon-engine.
+# The server build of the game (no sound, no controllers: neither ALSA nor udev) as horizon-engine, and beside it
+# the Rust standard library WebAssembly mods link against: without it the game refuses every wasm mod (the mod tool
+# builds it with the toolchain it pins, through rustup).
 RUN cargo build --release --locked -p horizon-game --no-default-features --bin horizon-client \
     && cargo build --release --locked -p horizon-server --bin horizon-server \
-    && mkdir /out && cp target/release/horizon-client /out/horizon-engine && cp target/release/horizon-server /out/
+    && cargo build --release --locked -p cargo-horizon-mod \
+    && mkdir /out && cp target/release/horizon-client /out/horizon-engine && cp target/release/horizon-server /out/ \
+    && target/release/cargo-horizon-mod horizon-mod wasm-std /out/horizon-wasm-std.wasm
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \

@@ -56,6 +56,11 @@ docker run -d --name horizon -p 25565:25565 --stop-timeout 180 \
 The first start writes `server.toml` into `/opt/craftorio`; edit it there afterwards. Manage the server with
 `docker exec horizon horizon-server status|cmd|backup|logs`. The `latest` tag never points at this image.
 
+Mods: put `<id>.hmod` into `horizon-mods/` of `/opt/craftorio` and turn each on with a line `mod.<id>:true` in
+`/opt/craftorio/horizon-mods.txt`, then restart. Players join only with exactly the server's mods: Craftorio's
+launcher ships the client's (`apps/horizon-mods` of craftorio-launcher), so both change together. The image has
+the WebAssembly standard library the game needs for wasm mods (`/opt/horizon/horizon-wasm-std.wasm`).
+
 ## 🚀 Quick Start
 
 ### 1. 📁 Prepare Server Directory
