@@ -30,6 +30,7 @@ jobs:
       v_1_20_1_arclight_47_4_18: ${{ steps.filter.outputs.v_1_20_1_arclight_47_4_18 }}
       v_1_20_1_arclight_server: ${{ steps.filter.outputs.v_1_20_1_arclight_server }}
       v_1_21_1_neoforge: ${{ steps.filter.outputs.v_1_21_1_neoforge }}
+      v_26_3_horizon: ${{ steps.filter.outputs.v_26_3_horizon }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -70,6 +71,8 @@ jobs:
             v_1_21_1_neoforge:
               - 'docker/1.21.1-neoforge-21.1.266/**'
               - 'docker/server/neoforge/1.21.1/**'
+            v_26_3_horizon:
+              - 'docker/26.3-horizon/**'
 
   prepare:
     name: Prepare build matrix
@@ -92,6 +95,7 @@ jobs:
           V_1_20_1_ARCLIGHT_47_4_18: ${{ needs.changes.outputs.v_1_20_1_arclight_47_4_18 }}
           V_1_20_1_ARCLIGHT_SERVER: ${{ needs.changes.outputs.v_1_20_1_arclight_server }}
           V_1_21_1_NEOFORGE: ${{ needs.changes.outputs.v_1_21_1_neoforge }}
+          V_26_3_HORIZON: ${{ needs.changes.outputs.v_26_3_horizon }}
         run: |
           versions=()
 
@@ -104,6 +108,7 @@ jobs:
               "1.20.1-forge-47.4.18"
               "1.20.1-arclight-1.0.6-forge-47.4.18"
               "1.21.1-neoforge-21.1.266"
+              "26.3-horizon"
             )
           else
             if [[ "$V_1_12_2_FORGE" == "true" ]]; then
@@ -126,6 +131,9 @@ jobs:
             fi
             if [[ "$V_1_21_1_NEOFORGE" == "true" ]]; then
               versions+=("1.21.1-neoforge-21.1.266")
+            fi
+            if [[ "$V_26_3_HORIZON" == "true" ]]; then
+              versions+=("26.3-horizon")
             fi
           fi
 
@@ -168,6 +176,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Pinned Horizon commit
+        id: horizon
+        if: startsWith(matrix.version, '26.3-horizon')
+        run: echo "commit=$(cat docker/${{ matrix.version }}/HORIZON_COMMIT)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout Horizon (private, read-only deploy key)
+        if: startsWith(matrix.version, '26.3-horizon')
+        uses: actions/checkout@v4
+        with:
+          repository: craftorio/horizon
+          ref: ${{ steps.horizon.outputs.commit }}
+          ssh-key: ${{ secrets.HORIZON_DEPLOY_KEY }}
+          path: docker/${{ matrix.version }}/horizon-src
+          persist-credentials: false
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -186,7 +209,7 @@ jobs:
           tags: |
             type=raw,value=${{ matrix.version }}
             type=raw,value=${{ matrix.version }}-{{sha}}
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' && matrix.version != '26.3-horizon' }}
 
       - name: Add architecture suffix to tags
         id: arch-tags
@@ -203,6 +226,8 @@ jobs:
           context: ./docker
           file: ./docker/${{ matrix.version }}/Dockerfile
           platforms: ${{ matrix.platform }}
+          build-args: |
+            HORIZON_GAME_BUILD_ID=${{ steps.horizon.outputs.commit }}
           push: true
           tags: ${{ steps.arch-tags.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -248,7 +273,7 @@ jobs:
           tags: |
             type=raw,value=${{ matrix.version }}
             type=raw,value=${{ matrix.version }}-{{sha}}
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' && matrix.version != '26.3-horizon' }}
 
       - name: Create and push manifest list
         run: |

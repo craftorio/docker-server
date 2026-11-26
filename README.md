@@ -30,6 +30,31 @@
 | `1.20.1-forge-47.4.18` | Forge | 17 | 1.20.1 | 47.4.18 | - |
 | `1.20.1-arclight-1.0.6-forge-47.4.18` | Arclight | 17 | 1.20.1 | 47.4.18 | 1.0.6-SNAPSHOT |
 | `1.21.1-neoforge-21.1.266` | NeoForge | 21 | 1.21.1 | 21.1.266 | - |
+| `26.3-horizon` | Horizon (Rust) | - | 26.3 | - | - |
+
+### Horizon (`26.3-horizon`)
+
+Minecraft 26.3 rewritten in Rust, built from the private `craftorio/horizon` at the commit in
+`docker/26.3-horizon/HORIZON_COMMIT` (the workflow checks it out with the `HORIZON_DEPLOY_KEY` deploy key). It is
+not a Java image: no JVM variables, no ultra-core agent, its own layout. The image holds none of Minecraft's
+files: mount the prepared resources (`horizon/resources` of the client bundle) read-only.
+
+```bash
+docker run -d --name horizon -p 25565:25565 --stop-timeout 180 \
+  -v horizon-data:/opt/craftorio \
+  -v /srv/horizon/resources:/opt/horizon/.local/horizon-client/26.3:ro \
+  -e HORIZON_OP=Steve \
+  ghcr.io/craftorio/docker-server-minecraft:26.3-horizon
+```
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HORIZON_API_DISCOVERY` | `https://mc.craftorio.com/discovery/minecraft/client` | Services discovery document (accounts, joins) |
+| `HORIZON_WHITELIST` | `false` | First start only: whitelist on or off |
+| `HORIZON_WORLD`, `HORIZON_SEED`, `HORIZON_PORT`, `HORIZON_PLAYERS`, `HORIZON_OP` | | First start only: answers for `horizon-server init` |
+
+The first start writes `server.toml` into `/opt/craftorio`; edit it there afterwards. Manage the server with
+`docker exec horizon horizon-server status|cmd|backup|logs`. The `latest` tag never points at this image.
 
 ## 🚀 Quick Start
 

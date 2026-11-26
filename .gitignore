@@ -21,3 +21,6 @@
 /ops.json
 /whitelist.json
 /usercache.json
+
+# Horizon sources, checked out at docker/26.3-horizon/HORIZON_COMMIT by the workflow and build.sh
+/docker/26.3-horizon/horizon-src/
