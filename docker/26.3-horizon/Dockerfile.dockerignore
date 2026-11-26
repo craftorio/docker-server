@@ -1,0 +1,3 @@
+# Only the Rust sources go into the build: no git history, no local build output
+horizon-src/.git
+**/target/
